@@ -60,6 +60,17 @@ app.post('/submit-absentees', async (req, res) => {
     }
 });
 
+app.get('/absentees', async (req, res) => {
+    try {
+        const absentees = await Absentee.find({});
+        res.status(200).json(absentees);
+    } catch (error) {
+        console.error('Error fetching absentee data:', error);
+        res.status(500).json({ message: 'An error occurred while fetching absentee data.' });
+    }
+});
+
+
 // Route to handle adjusting fine amounts
 app.post('/adjust-fine', async (req, res) => {
     const { rollNumber, adjustment } = req.body;
