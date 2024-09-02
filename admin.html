@@ -20,7 +20,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: auto;
+            height: 100vh;
             margin: 0;
         }
 
@@ -32,7 +32,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 900px;
+            max-width: 1200px; /* Adjusted width for more space */
         }
 
         /* Header styling */
@@ -97,6 +97,7 @@
                     <th>Roll Number</th>
                     <th>Total Absences</th>
                     <th>Fine Amount</th>
+                    <th>Absence Dates</th>
                     <th>Adjust Fine</th>
                 </tr>
             </thead>
@@ -117,10 +118,14 @@
                     data.forEach(record => {
                         const row = document.createElement('tr');
 
+                        // Convert dates to a readable format
+                        const dates = record.absenceDates.map(date => new Date(date).toLocaleDateString()).join(', ');
+
                         row.innerHTML = `
                             <td>${record.rollNumber}</td>
                             <td>${record.totalAbsences}</td>
                             <td>${record.fineAmount.toFixed(2)}</td>
+                            <td>${dates}</td>
                             <td>
                                 <input type="text" placeholder="Enter amount" data-roll="${record.rollNumber}">
                                 <button onclick="adjustFine('${record.rollNumber}')">Update</button>

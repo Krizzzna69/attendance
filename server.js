@@ -20,6 +20,7 @@ const absenteeSchema = new mongoose.Schema({
     rollNumber: String,
     totalAbsences: Number,
     fineAmount: Number,
+    absenceDates: [Date] // New field to store absence dates
 });
 
 const Absentee = mongoose.model('Absentee', absenteeSchema);
@@ -28,8 +29,8 @@ const Absentee = mongoose.model('Absentee', absenteeSchema);
 app.post('/submit-absentees', async (req, res) => {
     const { absentees, date } = req.body;
 
-    if (!absentees) {
-        return res.status(400).json({ message: 'Absentees field is required' });
+    if (!absentees || !date) {
+        return res.status(400).json({ message: 'Absentees and date fields are required' });
     }
 
     try {
@@ -40,7 +41,10 @@ app.post('/submit-absentees', async (req, res) => {
             // Find the record and increment the totalAbsences
             const updatedRecord = await Absentee.findOneAndUpdate(
                 { rollNumber: rollNumber },
-                { $inc: { totalAbsences: 1 } },
+                { 
+                    $inc: { totalAbsences: 1 },
+                    $addToSet: { absenceDates: new Date(date) } // Add the absence date
+                },
                 { new: true, upsert: true } // Create a new record if it doesn't exist
             );
 
@@ -60,6 +64,7 @@ app.post('/submit-absentees', async (req, res) => {
     }
 });
 
+// Route to handle fetching absentee records
 app.get('/absentees', async (req, res) => {
     try {
         const absentees = await Absentee.find({});
@@ -69,7 +74,6 @@ app.get('/absentees', async (req, res) => {
         res.status(500).json({ message: 'An error occurred while fetching absentee data.' });
     }
 });
-
 
 // Route to handle adjusting fine amounts
 app.post('/adjust-fine', async (req, res) => {
@@ -97,7 +101,6 @@ app.post('/adjust-fine', async (req, res) => {
         res.status(500).json({ message: 'An error occurred while adjusting the fine amount.' });
     }
 });
-
 
 // Start the server
 const PORT = process.env.PORT || 5000; // Use environment variable PORT if available, else default to 5000
