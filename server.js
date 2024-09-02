@@ -1,4 +1,3 @@
-
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -10,8 +9,11 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 app.use(bodyParser.json()); // For parsing application/json
 
-// MongoDB connection
-mongoose.connect('mongodb+srv://bitsmid167:jppj@cluster0.gyxzx.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true });
+// MongoDB connection (Replace with your MongoDB URI)
+const mongoURI = 'mongodb+srv://bitsmid167:jppj@cluster0.gyxzx.mongodb.net/test';
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
 // Define Schema and Model
 const absenteeSchema = new mongoose.Schema({
@@ -59,5 +61,5 @@ app.post('/submit-absentees', async (req, res) => {
 });
 
 // Start the server
-const PORT = 5000;
+const PORT = process.env.PORT || 5000; // Use environment variable PORT if available, else default to 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
