@@ -1,47 +1,39 @@
+
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
-// Create an Express app
+// Initialize app
 const app = express();
-const PORT = process.env.PORT || 5000; // Port can be set via environment variable
-
-// Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
+app.use(bodyParser.json()); // For parsing application/json
 
-// MongoDB URI (replace with your actual MongoDB connection string)
-const mongoURI = 'mongodb+srv://bitsmid167:jppj@cluster0.gyxzx.mongodb.net/' // Replace this with your MongoDB connection string
+// MongoDB connection
+mongoose.connect('mongodb+srv://bitsmid167:jppj@cluster0.gyxzx.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true });
 
-// Connect to MongoDB
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-mongoose.connection.on('connected', () => {
-    console.log('Connected to MongoDB');
-});
-
-mongoose.connection.on('error', (err) => {
-    console.error('Error connecting to MongoDB:', err);
-});
-
-// Define a schema and model
+// Define Schema and Model
 const absenteeSchema = new mongoose.Schema({
-    absentees: { type: [String], required: true },
-    date: { type: Date, required: true },
+    rollNumber: String,
+    totalAbsences: Number,
+    fineAmount: Number,
 });
 
 const Absentee = mongoose.model('Absentee', absenteeSchema);
 
-// Route to handle form submissions
+// Route to handle form submission
 app.post('/submit-absentees', async (req, res) => {
-    const { rollNumbers, date } = req.body;
+    const { absentees, date } = req.body;
+
+    if (!absentees) {
+        return res.status(400).json({ message: 'Absentees field is required' });
+    }
 
     try {
-        // Convert comma-separated roll numbers to array
-        const rollNumberArray = rollNumbers.split(',').map(number => number.trim());
+        // Convert comma-separated string to array
+        const rollNumberArray = absentees.split(',').map(number => number.trim());
 
-        // Iterate over each roll number and update the totalAbsences and fineAmount
         for (const rollNumber of rollNumberArray) {
             // Find the record and increment the totalAbsences
             const updatedRecord = await Absentee.findOneAndUpdate(
@@ -61,12 +53,11 @@ app.post('/submit-absentees', async (req, res) => {
 
         res.status(200).json({ message: 'Absentees recorded and updated successfully!' });
     } catch (error) {
-        console.error('Error updating absentee data:', error);
+        console.error('Error saving absentee data:', error);
         res.status(500).json({ message: 'An error occurred while recording absentees.' });
     }
 });
 
 // Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
