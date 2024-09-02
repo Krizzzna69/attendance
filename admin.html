@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Absentees</title>
+    <style>
+        /* Resetting some default browser styles */
+        body, h1, table, th, td, input, button, span {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Container styling */
+        .container {
+            text-align: center;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* Header styling */
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        /* Input and button styling */
+        input[type="text"], button {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        /* Success message styling */
+        .success-message {
+            margin-top: 15px;
+            font-size: 1em;
+            color: #28a745; /* Green color for success */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Manage Absentees</h1>
+        <table id="absenteeTable">
+            <thead>
+                <tr>
+                    <th>Roll Number</th>
+                    <th>Total Absences</th>
+                    <th>Fine Amount</th>
+                    <th>Adjust Fine</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be dynamically added here -->
+            </tbody>
+        </table>
+        <span id="successMessage" class="success-message"></span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch and display absentee data
+            fetch('https://attendance-91f8.onrender.com/absentees')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('absenteeTable').getElementsByTagName('tbody')[0];
+                    data.forEach(record => {
+                        const row = document.createElement('tr');
+
+                        row.innerHTML = `
+                            <td>${record.rollNumber}</td>
+                            <td>${record.totalAbsences}</td>
+                            <td>${record.fineAmount.toFixed(2)}</td>
+                            <td>
+                                <input type="text" placeholder="Enter amount" data-roll="${record.rollNumber}">
+                                <button onclick="adjustFine('${record.rollNumber}')">Update</button>
+                            </td>
+                        `;
+
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        });
+
+        function adjustFine(rollNumber) {
+            const amountInput = document.querySelector(`input[data-roll="${rollNumber}"]`);
+            const amount = parseFloat(amountInput.value);
+            
+            if (isNaN(amount) || amount < 0) {
+                alert('Please enter a valid amount.');
+                return;
+            }
+
+            fetch('https://attendance-91f8.onrender.com/adjust-fine', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    rollNumber: rollNumber,
+                    adjustment: amount
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('successMessage').textContent = 'Fine updated successfully!';
+                // Refresh the table to show updated data
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error updating fine:', error);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -60,6 +60,34 @@ app.post('/submit-absentees', async (req, res) => {
     }
 });
 
+// Route to handle adjusting fine amounts
+app.post('/adjust-fine', async (req, res) => {
+    const { rollNumber, adjustment } = req.body;
+
+    if (typeof rollNumber !== 'string' || isNaN(adjustment)) {
+        return res.status(400).json({ message: 'Invalid input' });
+    }
+
+    try {
+        // Find the record and adjust the fine amount
+        const updatedRecord = await Absentee.findOneAndUpdate(
+            { rollNumber: rollNumber },
+            { $inc: { fineAmount: -adjustment } },
+            { new: true } // Return the updated record
+        );
+
+        if (!updatedRecord) {
+            return res.status(404).json({ message: 'Record not found' });
+        }
+
+        res.status(200).json({ message: 'Fine adjusted successfully!' });
+    } catch (error) {
+        console.error('Error adjusting fine amount:', error);
+        res.status(500).json({ message: 'An error occurred while adjusting the fine amount.' });
+    }
+});
+
+
 // Start the server
 const PORT = process.env.PORT || 5000; // Use environment variable PORT if available, else default to 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
