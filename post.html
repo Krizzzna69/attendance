@@ -113,22 +113,27 @@
     <script>
         document.getElementById('attendanceForm').addEventListener('submit', function(event) {
             event.preventDefault(); // Prevent the default form submission
-
-            // Hide any previous messages
-            document.getElementById('successMessage').style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'none';
-
+    
             // Get form data
             const formData = new FormData(this);
-
+    
+            // Convert FormData to a plain object
+            const formObject = {};
+            formData.forEach((value, key) => {
+                formObject[key] = value;
+            });
+    
             // Send form data using fetch API
             fetch('https://attendance-91f8.onrender.com/submit-absentees', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formObject)
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok.');
+                    throw new Error('Network response was not ok');
                 }
                 return response.json();
             })
@@ -140,10 +145,9 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                // Show error message
-                document.getElementById('errorMessage').style.display = 'block';
             });
         });
     </script>
+    
 </body>
 </html>

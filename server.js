@@ -6,10 +6,10 @@ const cors = require('cors');
 // Initialize app
 const app = express();
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 app.use(bodyParser.json()); // For parsing application/json
+app.use(bodyParser.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 
-// MongoDB connection (Replace with your MongoDB URI)
+// MongoDB connection
 const mongoURI = 'mongodb+srv://bitsmid167:jppj@cluster0.gyxzx.mongodb.net/test';
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
