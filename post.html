@@ -84,6 +84,14 @@
             font-size: 1em;
             color: #28a745; /* Green color for success */
         }
+
+        /* Error message styling */
+        .error-message {
+            display: none;
+            margin-top: 15px;
+            font-size: 1em;
+            color: #dc3545; /* Red color for errors */
+        }
     </style>
 </head>
 <body>
@@ -99,11 +107,16 @@
             <button type="submit">Submit</button>
         </form>
         <span id="successMessage" class="success-message">Data submitted successfully!</span>
+        <span id="errorMessage" class="error-message">An error occurred while submitting data.</span>
     </div>
 
     <script>
         document.getElementById('attendanceForm').addEventListener('submit', function(event) {
             event.preventDefault(); // Prevent the default form submission
+
+            // Hide any previous messages
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
 
             // Get form data
             const formData = new FormData(this);
@@ -113,7 +126,12 @@
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok.');
+                }
+                return response.json();
+            })
             .then(data => {
                 // Show success message
                 document.getElementById('successMessage').style.display = 'block';
@@ -122,6 +140,8 @@
             })
             .catch(error => {
                 console.error('Error:', error);
+                // Show error message
+                document.getElementById('errorMessage').style.display = 'block';
             });
         });
     </script>

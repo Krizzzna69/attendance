@@ -35,20 +35,33 @@ const Absentee = mongoose.model('Absentee', absenteeSchema);
 
 // Route to handle form submissions
 app.post('/submit-absentees', async (req, res) => {
-    const { absentees, date } = req.body;
+    const { rollNumbers, date } = req.body;
 
     try {
-        // Create a new absentee record
-        const newAbsentee = new Absentee({
-            absentees: absentees.split(',').map(name => name.trim()), // Convert comma-separated string to array
-            date: new Date(date),
-        });
+        // Convert comma-separated roll numbers to array
+        const rollNumberArray = rollNumbers.split(',').map(number => number.trim());
 
-        // Save to MongoDB
-        await newAbsentee.save();
-        res.status(200).json({ message: 'Absentees recorded successfully!' });
+        // Iterate over each roll number and update the totalAbsences and fineAmount
+        for (const rollNumber of rollNumberArray) {
+            // Find the record and increment the totalAbsences
+            const updatedRecord = await Absentee.findOneAndUpdate(
+                { rollNumber: rollNumber },
+                { $inc: { totalAbsences: 1 } },
+                { new: true, upsert: true } // Create a new record if it doesn't exist
+            );
+
+            // Check if totalAbsences exceeds 2, and update fineAmount if necessary
+            if (updatedRecord.totalAbsences > 2) {
+                await Absentee.findOneAndUpdate(
+                    { rollNumber: rollNumber },
+                    { $inc: { fineAmount: 50 } }
+                );
+            }
+        }
+
+        res.status(200).json({ message: 'Absentees recorded and updated successfully!' });
     } catch (error) {
-        console.error('Error saving absentee data:', error);
+        console.error('Error updating absentee data:', error);
         res.status(500).json({ message: 'An error occurred while recording absentees.' });
     }
 });
